@@ -789,6 +789,10 @@ function setupEventListeners() {
 
   // 模态表单提交
   bookmarkForm.addEventListener('submit', handleModalSubmit);
+
+  // 监听 URL 输入框变化以自动装载历史标签记忆
+  formUrl.addEventListener('blur', handleFormUrlBlur);
+  formUrl.addEventListener('change', handleFormUrlBlur);
 }
 
 // 切换标签筛选状态
@@ -1138,4 +1142,27 @@ function saveTagsToMemory(url, tags) {
       console.log(`管理后台：已同步标签记忆至 URL: ${url}`);
     });
   });
+}
+
+// 自动检测并从 urlTagsMemory 自动加载历史标签
+function handleFormUrlBlur() {
+  const id = formBookmarkId.value;
+  if (!id) { // 仅在“新建书签”时触发
+    const url = formUrl.value.trim();
+    if (url && url !== 'https://' && url !== 'http://') {
+      chrome.storage.local.get(['urlTagsMemory'], (result) => {
+        const memory = result.urlTagsMemory || {};
+        const historicalTags = memory[url];
+        if (historicalTags && historicalTags.length > 0) {
+          // 仅在当前确实没有标签芯片时填充，以防覆盖用户在此期间自己填写的
+          if (modalActiveTags.length === 0) {
+            modalActiveTags = [...historicalTags];
+            renderModalTags();
+            renderModalSuggestions();
+            console.log(`添加书签：自动从 URL 记忆加载了历史标签: ${historicalTags.join(', ')}`);
+          }
+        }
+      });
+    }
+  }
 }
