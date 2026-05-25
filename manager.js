@@ -360,6 +360,7 @@ function renderBookmarksGrid() {
   // 1. 如果是文件夹视图，且没有搜索或标签过滤条件激活 -> 进入目录式列表排布
   if (!isGlobalView && !isSearchOrFilterActive) {
     breadcrumbsBar.classList.remove('hidden');
+    filterStatusBar.classList.add('hidden');
     renderBreadcrumbs();
 
     // 加载当前文件夹下的直接子项
