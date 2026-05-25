@@ -194,6 +194,50 @@ body {
   font-family: monospace;
 }
 
+/* Folder Section */
+.folder-section {
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  padding-top: 12px;
+  margin-bottom: 12px;
+}
+
+.folder-section.hidden {
+  display: none !important;
+}
+
+.select-container {
+  position: relative;
+  width: 100%;
+}
+
+#popup-folder-select {
+  width: 100%;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  appearance: none; /* 移除原生箭头 */
+  background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="%2394a3b8" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>');
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+#popup-folder-select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 2px rgba(20, 184, 166, 0.15);
+}
+
+#popup-folder-select option {
+  background: #0f172a;
+  color: var(--text-primary);
+}
+
 /* Tags Section */
 .tag-section {
   border-top: 1px solid rgba(255, 255, 255, 0.05);

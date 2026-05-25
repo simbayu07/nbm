@@ -19,6 +19,8 @@ const searchInput = document.getElementById('search-input');
 const resultsList = document.getElementById('results-list');
 const resultsEmpty = document.getElementById('results-empty');
 const btnOpenManager = document.getElementById('btn-open-manager');
+const folderSection = document.getElementById('folder-section');
+const popupFolderSelect = document.getElementById('popup-folder-select');
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
@@ -61,6 +63,9 @@ function setupEventListeners() {
   // 搜索输入框事件
   searchInput.addEventListener('input', handleSearchInput);
 
+  // 文件夹选择切换事件
+  popupFolderSelect.addEventListener('change', handleFolderChange);
+
   // 打开管理后台页面
   btnOpenManager.addEventListener('click', () => {
     chrome.tabs.create({ url: chrome.runtime.getURL('manager.html') });
@@ -97,11 +102,15 @@ function checkBookmarkState() {
       bookmarkId = bookmark.id;
       btnToggleBookmark.classList.add('active');
       tagSection.classList.remove('hidden');
+      folderSection.classList.remove('hidden');
       
       // 读取该书签的标签
       activeTags = allTagsMap[bookmarkId] || [];
       renderActiveTags();
       renderSuggestions();
+      
+      // 加载并定位所属的文件夹
+      loadFolderSelect(bookmark.parentId);
       
       // 已收藏页面打开时，默认自动聚焦标签输入框
       setTimeout(() => tagInput.focus(), 100);
@@ -118,9 +127,13 @@ function checkBookmarkState() {
           bookmarkId = newBookmark.id;
           btnToggleBookmark.classList.add('active');
           tagSection.classList.remove('hidden');
+          folderSection.classList.remove('hidden');
           activeTags = [];
           renderActiveTags();
           renderSuggestions();
+          
+          // 加载并定位所属的文件夹
+          loadFolderSelect(newBookmark.parentId);
           
           // 自动聚焦到标签输入框
           setTimeout(() => tagInput.focus(), 100);
@@ -133,6 +146,7 @@ function checkBookmarkState() {
         bookmarkId = null;
         btnToggleBookmark.classList.remove('active');
         tagSection.classList.add('hidden');
+        folderSection.classList.add('hidden');
         activeTags = [];
         activeTagsEl.innerHTML = '';
       }
@@ -153,6 +167,7 @@ function toggleBookmark() {
         bookmarkId = null;
         btnToggleBookmark.classList.remove('active');
         tagSection.classList.add('hidden');
+        folderSection.classList.add('hidden');
         activeTags = [];
         activeTagsEl.innerHTML = '';
         loadGlobalTags().then(() => {
@@ -169,9 +184,13 @@ function toggleBookmark() {
       bookmarkId = newBookmark.id;
       btnToggleBookmark.classList.add('active');
       tagSection.classList.remove('hidden');
+      folderSection.classList.remove('hidden');
       activeTags = [];
       renderActiveTags();
       renderSuggestions();
+      
+      // 加载并定位所属的文件夹
+      loadFolderSelect(newBookmark.parentId);
       
       // 聚焦到标签输入框
       setTimeout(() => tagInput.focus(), 100);
@@ -457,3 +476,61 @@ function getTagColors(tag) {
     border: `hsla(${h}, 70%, 45%, 0.3)`
   };
 }
+
+// 加载文件夹下拉框数据
+function loadFolderSelect(currentParentId) {
+  chrome.bookmarks.getTree((tree) => {
+    const folders = [];
+    
+    // 递归遍历树，过滤出所有文件夹节点，并生成类似 "书签栏 / 子文件夹" 的层级路径
+    function traverse(nodes, path = []) {
+      nodes.forEach(node => {
+        if (!node.url && node.id !== '0') {
+          const currentPath = [...path, node.title || '未命名文件夹'];
+          folders.push({
+            id: node.id,
+            pathName: currentPath.join(' / ')
+          });
+          if (node.children) {
+            traverse(node.children, currentPath);
+          }
+        } else if (node.children) {
+          traverse(node.children, path);
+        }
+      });
+    }
+    
+    traverse(tree);
+    
+    // 渲染至下拉选择框
+    popupFolderSelect.innerHTML = '';
+    folders.forEach(f => {
+      const opt = document.createElement('option');
+      opt.value = f.id;
+      opt.textContent = f.pathName;
+      if (f.id === currentParentId) {
+        opt.selected = true;
+      }
+      popupFolderSelect.appendChild(opt);
+    });
+  });
+}
+
+// 切换保存的文件夹
+function handleFolderChange() {
+  if (bookmarkId) {
+    const targetFolderId = popupFolderSelect.value;
+    chrome.bookmarks.move(bookmarkId, { parentId: targetFolderId }, (movedNode) => {
+      console.log(`书签已成功移动到文件夹: ${targetFolderId}`);
+      // 成功高亮微动效：边框变绿色一下
+      popupFolderSelect.style.borderColor = 'var(--accent-color)';
+      setTimeout(() => {
+        popupFolderSelect.style.borderColor = '';
+      }, 1000);
+      
+      // 刷新底部的最近书签列表
+      showRecentBookmarks();
+    });
+  }
+}
+

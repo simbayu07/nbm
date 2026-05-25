@@ -847,3 +847,224 @@ body {
   from { opacity: 0; transform: scale(0.9); }
   to { opacity: 1; transform: scale(1); }
 }
+
+/* ==========================================================================
+   4. 文件夹目录管理新增样式
+   ========================================================================== */
+
+/* 侧边栏文件夹目录树 */
+.sidebar-folders-tree {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  max-height: 350px;
+  overflow-y: auto;
+  margin-top: 4px;
+}
+
+.folder-tree-node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.folder-tree-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 13px;
+  color: var(--text-secondary);
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.folder-tree-item:hover {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--text-primary);
+}
+
+.folder-tree-item.active {
+  background: rgba(20, 184, 166, 0.08);
+  color: var(--accent-color);
+}
+
+.folder-tree-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: transform 0.2s, color 0.2s;
+  flex-shrink: 0;
+  margin-right: -2px;
+}
+
+.folder-tree-toggle:hover {
+  color: var(--text-primary);
+}
+
+.folder-tree-toggle.collapsed {
+  transform: rotate(-90deg);
+}
+
+.folder-tree-icon {
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.folder-tree-item.active .folder-tree-icon {
+  color: var(--accent-color);
+}
+
+.folder-tree-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  flex: 1;
+}
+
+/* 面包屑导航栏 */
+.breadcrumbs-bar {
+  padding: 12px 32px;
+  background: rgba(17, 24, 39, 0.2);
+  border-bottom: 1px solid var(--border-color);
+  backdrop-filter: blur(10px);
+  animation: slideDown 0.2s ease-out;
+  flex-shrink: 0;
+}
+
+.breadcrumbs-bar.hidden {
+  display: none !important;
+}
+
+.breadcrumbs-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.breadcrumb-item {
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: color 0.15s;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.breadcrumb-item:hover {
+  color: var(--accent-color);
+}
+
+.breadcrumb-item.active {
+  color: var(--text-primary);
+  font-weight: 600;
+  cursor: default;
+}
+
+.breadcrumb-separator {
+  color: var(--text-muted);
+  font-size: 11px;
+}
+
+/* 子文件夹卡片展示区 */
+.folders-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  margin-bottom: 24px;
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 24px;
+}
+
+.folders-grid.hidden {
+  display: none !important;
+}
+
+.folder-card {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.folder-card:hover {
+  background: rgba(255, 255, 255, 0.04);
+  border-color: rgba(20, 184, 166, 0.2);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}
+
+.folder-card-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  min-width: 0;
+}
+
+.folder-card-icon {
+  color: #3b82f6; /* 文件夹标准天蓝色 */
+  flex-shrink: 0;
+}
+
+.folder-card-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.folder-card-actions {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  opacity: 0;
+  transition: opacity 0.2s;
+  margin-left: 8px;
+  flex-shrink: 0;
+}
+
+.folder-card:hover .folder-card-actions {
+  opacity: 1;
+}
+
+.form-group select {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  padding: 10px 12px;
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  font-size: 13px;
+  outline: none;
+  cursor: pointer;
+  transition: border-color 0.2s ease;
+}
+
+.form-group select:focus {
+  border-color: var(--accent-color);
+}
+
+.form-group select option {
+  background: #111827;
+  color: var(--text-primary);
+}
+

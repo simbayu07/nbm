@@ -46,6 +46,16 @@
             <!-- 标签列表动态加载 -->
           </div>
         </div>
+
+        <div class="nav-section">
+          <div class="nav-section-header">
+            <span class="nav-section-title">文件夹目录</span>
+            <button id="btn-new-folder" class="btn-text-action">新建文件夹</button>
+          </div>
+          <div id="sidebar-folders-tree" class="sidebar-folders-tree">
+            <!-- 文件夹树动态加载 -->
+          </div>
+        </div>
       </nav>
 
       <!-- 侧边栏底部导入导出 -->
@@ -89,6 +99,13 @@
         </button>
       </header>
 
+      <!-- 面包屑导航栏 -->
+      <section id="breadcrumbs-bar" class="breadcrumbs-bar hidden">
+        <div id="breadcrumbs-list" class="breadcrumbs-list">
+          <!-- 面包屑动态加载 -->
+        </div>
+      </section>
+
       <!-- 当前筛选状态横条 -->
       <section id="filter-status-bar" class="filter-status-bar hidden">
         <div class="filter-info">
@@ -103,6 +120,11 @@
         <div class="bookmarks-header">
           <h2 id="view-title">所有书签</h2>
           <span id="bookmarks-count" class="count-text">共 0 个书签</span>
+        </div>
+
+        <!-- 子文件夹卡片展示区 -->
+        <div id="folders-grid" class="folders-grid hidden">
+          <!-- 子文件夹卡片动态加载 -->
         </div>
 
         <div id="bookmarks-grid" class="bookmarks-grid">
@@ -138,6 +160,12 @@
         <div class="form-group">
           <label for="form-url">网址 (URL)</label>
           <input type="url" id="form-url" required placeholder="https://example.com">
+        </div>
+        <div class="form-group">
+          <label for="form-folder-id">保存位置 (文件夹)</label>
+          <select id="form-folder-id" required>
+            <!-- 文件夹路径树动态填充 -->
+          </select>
         </div>
         <div class="form-group">
           <label>标签 (Tags)</label>
