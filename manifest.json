@@ -1,0 +1,55 @@
+{
+  "manifest_version": 3,
+  "name": "书签标签管理器",
+  "version": "1.0",
+  "description": "为 Chrome 书签添加强大的标签管理、搜索与快捷访问功能。",
+  "permissions": [
+    "bookmarks",
+    "storage",
+    "activeTab",
+    "favicon"
+  ],
+  "action": {
+    "default_popup": "popup.html",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "48": "icons/icon48.png",
+      "128": "icons/icon128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
+  },
+  "options_ui": {
+    "page": "manager.html",
+    "open_in_tab": true
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+Y",
+        "mac": "Command+Shift+Y"
+      },
+      "description": "打开快速收藏与标签管理弹窗"
+    },
+    "open-manager": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+O",
+        "mac": "Command+Shift+O"
+      },
+      "description": "打开书签标签管理器"
+    },
+    "quick-bookmark": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "Command+Shift+S"
+      },
+      "description": "快速收藏当前网页为书签"
+    }
+  }
+}
