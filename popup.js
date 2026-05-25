@@ -21,6 +21,11 @@ const resultsEmpty = document.getElementById('results-empty');
 const btnOpenManager = document.getElementById('btn-open-manager');
 const folderSection = document.getElementById('folder-section');
 const popupFolderSelect = document.getElementById('popup-folder-select');
+const btnPopupNewFolder = document.getElementById('btn-popup-new-folder');
+const popupNewFolderWrapper = document.getElementById('popup-new-folder-wrapper');
+const popupNewFolderInput = document.getElementById('popup-new-folder-input');
+const btnPopupCreateFolder = document.getElementById('btn-popup-create-folder');
+const btnPopupCancelFolder = document.getElementById('btn-popup-cancel-folder');
 
 // 初始化
 document.addEventListener('DOMContentLoaded', () => {
@@ -65,6 +70,12 @@ function setupEventListeners() {
 
   // 文件夹选择切换事件
   popupFolderSelect.addEventListener('change', handleFolderChange);
+
+  // 新建文件夹交互事件
+  btnPopupNewFolder.addEventListener('click', togglePopupNewFolderPanel);
+  btnPopupCancelFolder.addEventListener('click', hidePopupNewFolderPanel);
+  btnPopupCreateFolder.addEventListener('click', createPopupFolder);
+  popupNewFolderInput.addEventListener('keydown', handlePopupNewFolderKeyDown);
 
   // 打开管理后台页面
   btnOpenManager.addEventListener('click', () => {
@@ -533,4 +544,73 @@ function handleFolderChange() {
     });
   }
 }
+
+// 切换显示新建文件夹面板
+function togglePopupNewFolderPanel() {
+  if (popupNewFolderWrapper.classList.contains('hidden')) {
+    popupNewFolderWrapper.classList.remove('hidden');
+    popupNewFolderInput.value = '';
+    popupNewFolderInput.focus();
+  } else {
+    hidePopupNewFolderPanel();
+  }
+}
+
+// 隐藏新建文件夹面板
+function hidePopupNewFolderPanel() {
+  popupNewFolderWrapper.classList.add('hidden');
+  popupNewFolderInput.value = '';
+}
+
+// 新建文件夹输入框键盘事件
+function handlePopupNewFolderKeyDown(e) {
+  if (e.key === 'Enter') {
+    e.preventDefault();
+    createPopupFolder();
+  } else if (e.key === 'Escape') {
+    e.preventDefault();
+    hidePopupNewFolderPanel();
+  }
+}
+
+// 创建新文件夹并自动移动当前书签
+function createPopupFolder() {
+  const folderName = popupNewFolderInput.value.trim();
+  if (!folderName) {
+    popupNewFolderInput.focus();
+    return;
+  }
+
+  // 以当前下拉框选中的文件夹为父节点，如果未选中，则默认为“书签栏”(ID: '1')
+  const parentId = popupFolderSelect.value || '1';
+
+  chrome.bookmarks.create({
+    parentId: parentId,
+    title: folderName
+  }, (newFolder) => {
+    console.log('新文件夹创建成功：', newFolder);
+    
+    // 隐藏输入面板
+    hidePopupNewFolderPanel();
+
+    // 重新加载文件夹下拉框，并指定默认选中新创建的文件夹 ID
+    loadFolderSelect(newFolder.id);
+
+    // 如果当前有书签 ID，则直接将当前书签移入该新文件夹
+    if (bookmarkId) {
+      chrome.bookmarks.move(bookmarkId, { parentId: newFolder.id }, () => {
+        console.log(`书签已自动移动至新创建的文件夹: ${newFolder.id}`);
+        // 成功高亮微动效
+        popupFolderSelect.style.borderColor = 'var(--accent-color)';
+        setTimeout(() => {
+          popupFolderSelect.style.borderColor = '';
+        }, 1000);
+
+        // 重新加载最近列表以同步位置
+        showRecentBookmarks();
+      });
+    }
+  });
+}
+
 
