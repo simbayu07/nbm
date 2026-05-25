@@ -8,7 +8,8 @@ let currentView = 'all';     // 'all', 'untagged', 或 'folder'
 let currentFolderId = 'all'; // 'all', 'untagged', 或 具体的数字 ID（如 '1', '2' 等）
 let searchQuery = '';
 let modalActiveTags = [];    // 模态框中当前正在编辑的标签列表
-
+let lastLoadedUrl = '';      // 最近一次自动从记忆库中装载标签的 URL
+let lastLoadedTags = [];     // 最近一次自动装载的标签列表备份
 // 文件夹相关状态
 let folderTreeRaw = null;     // 原始树根节点 (ID: '0')
 let foldersList = [];         // 扁平化的文件夹列表，用于下拉框选择 { id, title, pathName }
@@ -871,6 +872,8 @@ function openAddModal() {
   formTitle.value = '';
   formUrl.value = 'https://';
   modalActiveTags = [];
+  lastLoadedUrl = '';
+  lastLoadedTags = [];
   
   // 默认位置：如果在特定目录中，直接选中它；否则选“书签栏”(ID: '1')
   let defaultFolderId = '1';
@@ -1149,20 +1152,43 @@ function handleFormUrlBlur() {
   const id = formBookmarkId.value;
   if (!id) { // 仅在“新建书签”时触发
     const url = formUrl.value.trim();
+    
+    // 如果 URL 没变，直接忽略
+    if (url === lastLoadedUrl) return;
+    
     if (url && url !== 'https://' && url !== 'http://') {
-      chrome.storage.local.get(['urlTagsMemory'], (result) => {
-        const memory = result.urlTagsMemory || {};
-        const historicalTags = memory[url];
-        if (historicalTags && historicalTags.length > 0) {
-          // 仅在当前确实没有标签芯片时填充，以防覆盖用户在此期间自己填写的
-          if (modalActiveTags.length === 0) {
+      // 检查当前显示标签是否未被手动更改过（依然跟上一次加载的 tags 一致，或者是初始的空状态）
+      const isUnchanged = (modalActiveTags.length === lastLoadedTags.length) && 
+                          modalActiveTags.every((v, i) => v === lastLoadedTags[i]);
+                          
+      if (isUnchanged) {
+        chrome.storage.local.get(['urlTagsMemory'], (result) => {
+          const memory = result.urlTagsMemory || {};
+          const historicalTags = memory[url];
+          
+          if (historicalTags && historicalTags.length > 0) {
             modalActiveTags = [...historicalTags];
+            lastLoadedUrl = url;
+            lastLoadedTags = [...historicalTags];
+            
             renderModalTags();
             renderModalSuggestions();
-            console.log(`添加书签：自动从 URL 记忆加载了历史标签: ${historicalTags.join(', ')}`);
+            console.log(`添加书签：URL变动，自动加载了新记忆标签: ${historicalTags.join(', ')}`);
+          } else {
+            // 如果新的 URL 没有任何记忆标签，且当前依然是上一次自动加载的，则自动将其清空重置
+            modalActiveTags = [];
+            lastLoadedUrl = url;
+            lastLoadedTags = [];
+            
+            renderModalTags();
+            renderModalSuggestions();
+            console.log(`添加书签：URL变动，新URL无历史标签，已自动清空`);
           }
-        }
-      });
+        });
+      } else {
+        // 如果用户手动编辑过标签，仅更新 lastLoadedUrl，保留用户的手动改动，不强行覆盖
+        lastLoadedUrl = url;
+      }
     }
   }
 }
