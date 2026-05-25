@@ -139,18 +139,13 @@ function checkBookmarkState() {
           btnToggleBookmark.classList.add('active');
           tagSection.classList.remove('hidden');
           folderSection.classList.remove('hidden');
-          activeTags = [];
-          renderActiveTags();
-          renderSuggestions();
-          
-          // 加载并定位所属的文件夹
-          loadFolderSelect(newBookmark.parentId);
-          
-          // 自动聚焦到标签输入框
-          setTimeout(() => tagInput.focus(), 100);
-          
-          // 重新加载最近列表以显示新收藏
-          showRecentBookmarks();
+          importTagsFromMemory(url, newBookmark.id, () => {
+            renderActiveTags();
+            renderSuggestions();
+            loadFolderSelect(newBookmark.parentId);
+            setTimeout(() => tagInput.focus(), 100);
+            showRecentBookmarks();
+          });
         });
       } else {
         // 无法收藏的页面，保持未收藏状态
@@ -196,18 +191,13 @@ function toggleBookmark() {
       btnToggleBookmark.classList.add('active');
       tagSection.classList.remove('hidden');
       folderSection.classList.remove('hidden');
-      activeTags = [];
-      renderActiveTags();
-      renderSuggestions();
-      
-      // 加载并定位所属的文件夹
-      loadFolderSelect(newBookmark.parentId);
-      
-      // 聚焦到标签输入框
-      setTimeout(() => tagInput.focus(), 100);
-      
-      // 重新加载最近列表
-      showRecentBookmarks();
+      importTagsFromMemory(currentTab.url, newBookmark.id, () => {
+        renderActiveTags();
+        renderSuggestions();
+        loadFolderSelect(newBookmark.parentId);
+        setTimeout(() => tagInput.focus(), 100);
+        showRecentBookmarks();
+      });
     });
   }
 }
@@ -268,6 +258,7 @@ function addTag(tag) {
     allTagsMap[bookmarkId] = activeTags;
     
     chrome.storage.local.set({ bookmarkTags: allTagsMap }, () => {
+      saveTagsToMemory(currentTab.url, activeTags);
       renderActiveTags();
       loadGlobalTags().then(() => {
         renderSuggestions();
@@ -294,6 +285,7 @@ function removeTag(index) {
   }
   
   chrome.storage.local.set({ bookmarkTags: allTagsMap }, () => {
+    saveTagsToMemory(currentTab.url, activeTags);
     renderActiveTags();
     loadGlobalTags().then(() => {
       renderSuggestions();
@@ -609,6 +601,48 @@ function createPopupFolder() {
         // 重新加载最近列表以同步位置
         showRecentBookmarks();
       });
+    }
+  });
+}
+
+// 辅助函数：将标签记忆备份保存至基于 URL 的 urlTagsMemory 字典中
+function saveTagsToMemory(url, tags) {
+  if (!url) return;
+  chrome.storage.local.get(['urlTagsMemory'], (result) => {
+    const memory = result.urlTagsMemory || {};
+    if (tags && tags.length > 0) {
+      memory[url] = tags;
+    } else {
+      delete memory[url];
+    }
+    chrome.storage.local.set({ urlTagsMemory: memory }, () => {
+      console.log(`已成功同步标签数据至 URL 记忆库中: ${url}`);
+    });
+  });
+}
+
+// 辅助函数：尝试从 urlTagsMemory 恢复对应 URL 的标签并赋给新书签 ID
+function importTagsFromMemory(url, newBookmarkId, callback) {
+  if (!url) {
+    if (callback) callback();
+    return;
+  }
+  chrome.storage.local.get(['urlTagsMemory'], (result) => {
+    const memory = result.urlTagsMemory || {};
+    const historicalTags = memory[url];
+    if (historicalTags && historicalTags.length > 0) {
+      activeTags = [...historicalTags];
+      allTagsMap[newBookmarkId] = activeTags;
+      chrome.storage.local.set({ bookmarkTags: allTagsMap }, () => {
+        console.log(`自动从历史记忆中继承了 URL 关联标签: ${historicalTags.join(', ')}`);
+        // 加载全局标签确保推荐功能同步刷新
+        loadGlobalTags().then(() => {
+          if (callback) callback();
+        });
+      });
+    } else {
+      activeTags = [];
+      if (callback) callback();
     }
   });
 }

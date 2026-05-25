@@ -1005,12 +1005,26 @@ function handleModalSubmit(e) {
       if (modalActiveTags.length > 0) {
         allTagsMap[newBookmark.id] = modalActiveTags;
         chrome.storage.local.set({ bookmarkTags: allTagsMap }, () => {
+          saveTagsToMemory(url, modalActiveTags);
           closeModal();
           refreshData();
         });
       } else {
-        closeModal();
-        refreshData();
+        // 如果用户没有手动键入标签，检查是否有历史记忆标签并自动继承
+        chrome.storage.local.get(['urlTagsMemory'], (result) => {
+          const memory = result.urlTagsMemory || {};
+          const historicalTags = memory[url];
+          if (historicalTags && historicalTags.length > 0) {
+            allTagsMap[newBookmark.id] = historicalTags;
+            chrome.storage.local.set({ bookmarkTags: allTagsMap }, () => {
+              closeModal();
+              refreshData();
+            });
+          } else {
+            closeModal();
+            refreshData();
+          }
+        });
       }
     });
   }
@@ -1024,6 +1038,7 @@ function handleModalSubmit(e) {
     }
     
     chrome.storage.local.set({ bookmarkTags: allTagsMap }, () => {
+      saveTagsToMemory(url, modalActiveTags);
       closeModal();
       refreshData();
     });
@@ -1107,4 +1122,20 @@ function getTagColors(tag) {
     text: `hsl(${h}, 85%, 75%)`,
     border: `hsla(${h}, 70%, 45%, 0.3)`
   };
+}
+
+// 辅助函数：将标签记忆备份保存至基于 URL 的 urlTagsMemory 字典中
+function saveTagsToMemory(url, tags) {
+  if (!url) return;
+  chrome.storage.local.get(['urlTagsMemory'], (result) => {
+    const memory = result.urlTagsMemory || {};
+    if (tags && tags.length > 0) {
+      memory[url] = tags;
+    } else {
+      delete memory[url];
+    }
+    chrome.storage.local.set({ urlTagsMemory: memory }, () => {
+      console.log(`管理后台：已同步标签记忆至 URL: ${url}`);
+    });
+  });
 }
